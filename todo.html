@@ -1,0 +1,360 @@
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/js/splide.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<div style="text-align: center;">
+    <form style="padding:0px;">        
+        <!-- Slider main container -->
+        <div id="splide" class="splide">
+            <div class="splide__track">
+                <ul class="splide__list">
+                </ul>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    var swiper = document.getElementById('splide');
+    var wrapper = swiper.querySelector('.splide__list');
+   
+    var list = [
+        {'id':'fdsfd', 'text':'A'},
+        {'id':'fdsfad', 'text':'CACSDS'},
+        {'id':'fdsaaad', 'text':'KOala', 'checked':true},
+        {'id':'fdsaaad', 'text':'KOssala','time':10000},
+        {'id':'fdsaaad', 'text':'KOassla'},
+        {'id':'fdsaaad', 'text':'KOsssala'},
+        {'id':'fdsaaad', 'text':'KOala'},
+        {'id':'fdsaaad', 'text':'KOsssala'},
+        {'id':'fdsaaad', 'text':'KOala'},
+        {'id':'fdsaaad', 'text':'KOssa'},
+        {'id':'fdsaaad', 'text':'KsssOala'}, 
+        {'id':'fdsaaad', 'text':'KOala'}
+    ];
+
+    function addEl(text,attr,extra){
+        wrapper.insertAdjacentHTML('beforeend', `
+            <li ${attr} class="splide__slide" style="display: flex; align-items: center; justify-content: center; font-size: 51px;">
+                <div><span>${text}</span></div>
+                <div class="timer"></div>
+                ${extra}
+            </li>
+        `);
+    }
+
+    function addTodos(todo){
+        var count = todo.length;
+        var single = 100/(count);
+        for(var i=0; i<count; i++){
+            var ordinal = i+1;
+            var cur    = (single*ordinal) - (single/2);
+            var checked = todo[i].checked ? true : false;
+            var time = todo[i].time ? todo[i].time : 0;
+            todo[i].time = time;
+            var custom_attr =checked ? 'checked="init"':''; 
+            var extra = `<div><label><input  class="cb pristine" style="left: calc(${cur}% - 51px)!important;" type="checkbox" ${custom_attr}></label></div>`;
+            var attr =  `data-i="${i}"`;
+            
+            addEl(todo[i]['text'],attr, extra);       
+        }
+    }
+
+    function msToTime(ms) {
+          let seconds = (ms / 1000).toFixed(1);
+          let minutes = (ms / (1000 * 60)).toFixed(1);
+          let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+          let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+          if (seconds < 60) return seconds + " Secondi";
+          else if (minutes < 60) return minutes + " Minuti";
+          else if (hours < 24) return hours + " Ore";
+          else return days + " Giorni"
+    }
+
+    addTodos(list);
+
+    document.addEventListener( 'DOMContentLoaded', function () {
+		var splide = new Splide( '.splide', {fixedHeight:"90vh "} ).mount();
+
+    var playing = {};
+    splide.on( 'move', function(i) {
+        if(playing.interval){
+          stopCountdown(playing);
+        }
+	       var el = list[i];
+         var elDom = document.querySelector('.splide [data-i="'+i+'"]');
+         var timer = elDom.querySelector('.timer');
+         timer.setAttribute('data-time', el.time);
+         timer.setAttribute('data-start', new Date().getTime());
+         timer.setAttribute('data-i', i);
+         timer.innerHTML = msToTime(el.time);
+         startCountdown(timer);
+    });
+
+    function stopCountdown(){
+      var i = parseInt(playing.element.getAttribute('data-i'));
+      var el = list[i]; 
+      var now = new Date().getTime();
+      var then = parseInt(playing.element.getAttribute('data-start'));
+      list[i].time +=   now - then;
+      clearInterval(playing.interval);
+    }
+
+    function startCountdown(el){
+            // Set the date we're counting down to
+            var countDownDate = parseInt(el.getAttribute('data-start'));
+            var already       = parseInt(el.getAttribute('data-time'));
+          
+            playing.element =  el;
+            // Update the count down every 1 second
+            playing.interval = setInterval(function() {
+              // Get today's date and time
+              var now = new Date().getTime();
+              
+
+              // Find the distance between now and the count down date
+              var distance =  now - countDownDate;
+
+              // Display the result in the element with id="demo"
+              el.innerHTML = msToTime(distance+already);
+
+              // If the count down is finished, write some text
+              
+            }, 1000);
+    }
+
+	} );
+</script>
+
+<style>
+    /* Colors */
+/* Animation */
+*,
+*:before,
+*:after {
+  border: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-size: 30px;
+}
+
+body,
+input {
+  font: 1em "Titillium Web", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  background: url("https://s22.postimg.cc/gzyyouldd/grey-paper-texture.jpg") center top;
+  height: 100vh;
+  overflow: hidden;
+}
+
+form {
+  margin: 1.5em auto 0;
+  padding: 0.75em;
+  max-width: 320px;
+}
+
+label {
+  display: block;
+  margin-bottom: 1.5em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cb {
+    font-size: 70px!important;
+    position: fixed!important;
+    bottom: 80px!important;
+}
+
+.cb {
+  box-shadow: 0 0 0 0.125em rgba(0, 0, 0, 0.75) inset;
+  display: inline-block;
+  position: relative;
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: middle;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+.cb:before, .cb:after {
+  content: "";
+  display: block;
+  position: absolute;
+}
+.cb:before {
+  animation: eraseA 0.5s steps(1) forwards;
+  background: url("https://s22.postimg.cc/fi4blx4gx/checkmark.png") 0 100%/1.2em 1.35em no-repeat;
+  bottom: 0.2em;
+  left: 0.3em;
+  width: 0;
+  height: 1.35em;
+}
+.cb:after {
+  animation: eraseB 0.5s linear forwards;
+  background: linear-gradient(rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 50%) 11.2em 0, linear-gradient(#c8646e, #c8646e) 11.2em 0, linear-gradient(90deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) 0.1em, rgba(255, 255, 255, 0) 0.1em, rgba(255, 255, 255, 0) 0.2em, rgba(0, 0, 0, 0.2) 0.2em, rgba(0, 0, 0, 0.2) 0.3em, rgba(0, 0, 0, 0) 0.3em) 9.8em 0/0.3em 100%, repeating-linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) 0.1em, rgba(255, 255, 255, 0) 0.1em, rgba(255, 255, 255, 0) 0.2em) 10.2em 0/0.5em 100%, linear-gradient(90deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) 0.1em, rgba(255, 255, 255, 0) 0.1em, rgba(255, 255, 255, 0) 0.2em, rgba(0, 0, 0, 0.2) 0.2em, rgba(0, 0, 0, 0.2) 0.3em, rgba(0, 0, 0, 0) 0.3em) 10.8em 0/0.3em 100%, linear-gradient(rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.6) 35%, rgba(255, 255, 255, 0.6) 65%, rgba(255, 255, 255, 0) 65%) 9.7em 0, linear-gradient(#b4b4b4, #b4b4b4) 9.7em 0, linear-gradient(rgba(0, 0, 0, 0.1) 27%, rgba(0, 0, 0, 0) 27%, rgba(0, 0, 0, 0) 73%, rgba(0, 0, 0, 0.2) 73%) 2em 0, linear-gradient(#f0d000, #f0d000) 2em 0, linear-gradient(-14deg, #1e1e1e 18%, rgba(30, 30, 30, 0) 20%) 0 0/0.5em 0.5em, linear-gradient(14deg, rgba(30, 30, 30, 0) 80%, #1e1e1e 83%) 0 0.5em/0.5em 0.5em, linear-gradient(-14deg, #d2a078 48%, rgba(210, 160, 120, 0) 50%) 0 0/2em 0.5em, linear-gradient(14deg, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.1) 50%) 0 0.5em/2em 0.5em, linear-gradient(14deg, rgba(210, 160, 120, 0) 48%, #d2a078 50%) 0 0.5em/2em 0.5em;
+  background-repeat: no-repeat;
+  border-radius: 0 0.1em 0.1em 0;
+  opacity: 0;
+  visibility: hidden;
+  transform-origin: 0 0.25em;
+  width: 12em;
+  height: 1em;
+}
+.cb:checked {
+  background-color: transparent;
+}
+.cb:checked:before {
+  animation: drawA 0.5s linear forwards;
+}
+.cb:checked:after {
+  animation: drawB 0.5s linear;
+}
+.cb[checked=init]:before {
+  animation: drawA 0s linear forwards;
+}
+.cb[checked=init]:after {
+  animation: drawB 0s linear;
+}
+
+.cb:focus {
+  outline: transparent;
+}
+.cb:focus + span {
+  color: rgba(0, 0, 0, 0.75);
+  outline: transparent;
+}
+
+.pristine:before, .pristine:after {
+  animation: none;
+}
+
+@keyframes drawA {
+  from, 5% {
+    width: 0;
+    height: 1.35em;
+  }
+  90%, to {
+    width: 1.2em;
+    height: 1.35em;
+  }
+}
+@keyframes drawB {
+  from {
+    opacity: 0;
+    transform: translate(0em, -0.5em) rotate(-50deg);
+    visibility: visible;
+  }
+  5% {
+    opacity: 1;
+    transform: translate(0em, 0.3em) rotate(-60deg);
+  }
+  17% {
+    transform: translate(0.25em, 0.8em) rotate(-65deg);
+  }
+  79% {
+    transform: translate(1.1em, -0.14em) rotate(-63deg);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(1.2em, -0.15em) rotate(-63deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate(1.25em, -1.7em) rotate(-63deg);
+  }
+}
+@keyframes eraseA {
+  from {
+    width: 1.2em;
+    height: 1.35em;
+  }
+  10% {
+    width: 1.2em;
+    height: 1.08em;
+  }
+  27% {
+    width: 1.2em;
+    height: 0.81em;
+  }
+  36% {
+    width: 1.2em;
+    height: 0.7em;
+  }
+  45% {
+    width: 1.2em;
+    height: 0.55em;
+  }
+  55% {
+    width: 1.2em;
+    height: 0.35em;
+  }
+  80%, to {
+    width: 1.2em;
+    height: 0;
+  }
+}
+@keyframes eraseB {
+  from {
+    opacity: 0;
+    transform: translate(0.6em, -12.2em) rotate(90deg);
+    visibility: visible;
+  }
+  10% {
+    opacity: 1;
+    transform: translate(1.2em, -12.05em) rotate(90deg);
+  }
+  20% {
+    transform: translate(0.6em, -11.9em) rotate(90deg);
+  }
+  30% {
+    transform: translate(1.2em, -11.75em) rotate(90deg);
+  }
+  40% {
+    transform: translate(0.6em, -11.6em) rotate(90deg);
+  }
+  50% {
+    transform: translate(1.2em, -11.45em) rotate(90deg);
+  }
+  60% {
+    transform: translate(0.6em, -11.3em) rotate(90deg);
+  }
+  70% {
+    transform: translate(1.2em, -11.15em) rotate(90deg);
+  }
+  80% {
+    transform: translate(0.6em, -11em) rotate(90deg);
+  }
+  90% {
+    opacity: 1;
+    transform: translate(2em, -12.5em) rotate(100deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate(2em, -12.5em) rotate(100deg);
+  }
+}
+</style>
+
+<script>
+    // stop erase animations from firing on load
+document.addEventListener("DOMContentLoaded",function(){
+	document.querySelector("form").addEventListener("click",e => {
+		let checkboxCL = e.target.classList,
+			pState = "pristine";
+
+		if (checkboxCL.contains(pState)){
+      checkboxCL.remove(pState);
+      e.target.removeAttribute('checked');
+    }
+		
+	});
+});
+</script>

@@ -1,0 +1,8 @@
+<?php
+require('vendor/autoload.php');
+session_start();
+$router = new AltoRouter();
+$connection_url = "mongodb://user:password@dominio:porta/admin";
+$client = new MongoDB\Client($connection_url,[],['typeMap' => ['root' => 'array', 'document' => 'array']]);   
+$db = $client->todo;
+
