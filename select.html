@@ -1,0 +1,29 @@
+<form>
+    <select id="select-label">
+        <option selected disabled>Seleziona Etichetta</option>
+        <option value="new" selected disabled>Crea Nuova</option>
+    </select>
+    <input type="hidden" name="label_id" required>
+    <button disabled>Avanti</button>
+</form>
+
+<script>
+        var selectLabel = document.getElementById('select-label');
+        var selectLabelInput = document.querySelector('[name=label_id]');
+        var selectLabelSubmit = document.querySelector('form button');
+        for(var i=0; i<options.length;i++){
+            var option = options[i];
+            selectLabel.insertAdjacentHTML('beforeend', `<option value="${option['id']}">${option['name']}</option>`);
+        }
+        selectLabel.addEventListener('input', function(e){
+            var val = selectLabel.value;
+            if(val=='new'){
+
+            }else if(val){
+                selectLabelInput.value = val;
+                selectLabelSubmit.removeAttribute('disabled');
+            }
+        });
+</script>
+
+
