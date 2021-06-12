@@ -126,9 +126,10 @@
           var playing_i = getCookie('playing_i');
           var playing_id = getCookie('playing_id');
           if(playing_i!==null && playing_id!==null){
+            playing_id = decodeURIComponent(playing_id);
             var elDom = document.querySelector('.splide [data-i="'+playing_i+'"]');
             var toGo = false;
-            if(elDom.getAttribute('data-id')==playing_id){
+            if( elDom && elDom.getAttribute('data-id')==playing_id){
               toGo = parseInt(playing_i);
             }else{
               var elements = document.querySelectorAll('.splide__slide');
@@ -138,7 +139,7 @@
                 }
               }
             }
-
+            console.log(toGo);
             if(toGo!==false){
               saveCountDownStop(toGo);
               splide.go(toGo);

@@ -3,12 +3,13 @@ if( preg_match('/^\/assets/m',$_SERVER['REQUEST_URI'])  && !preg_match('/(.*?\.p
     readfile($_SERVER['REQUEST_URI']);
     exit;
 }
-/*
+
+require('inc/setup.php');
 if(empty($_SESSION['_id']) && empty($_POST['username'])){
     readfile('template/login.html');
     exit;
-}*/
-require('inc/setup.php');
+}
+
 
 $_SESSION['scope']  = $_SESSION['scope'] ?? [];
 
@@ -26,6 +27,17 @@ if(!empty($_GET)){
 
     if(!empty($_GET['refresh'])){
         $_SESSION['tasks'] = [];
+    }
+}
+
+if(!empty($_POST['username']) && !empty($_POST['action'])){
+    switch($_POST['action']){
+        case 'login':
+            if(!empty($_POST['password'])){
+                loadFromDB($_POST['username'],$_POST['password']);
+            }
+        break;
+
     }
 }
 
@@ -72,6 +84,7 @@ if($client instanceof Google_Client){
     }
     loadTaskSort();
     loadFromCookies();
+    saveToDB();
 
     $task_string = str_replace('drag-signature\r\n                ?We run on ','',str_replace('\ufffd','\n',json_encode($_SESSION['tasks'],JSON_INVALID_UTF8_SUBSTITUTE)));
     $_SESSION['tasks'] = json_decode($task_string,true);
@@ -85,14 +98,38 @@ if($client instanceof Google_Client){
 }
 
 
-function loadFromDB($email){
+function loadFromDB($email,$password){
+    global $db;
+    $user =  $db->users->findOne(['user_info.email'=>$email,'password'=>md5($password)]);
+    $_SESSION = array_merge($_SESSION,$user);
 
+    if(!empty($user['_id'])){
+        $_SESSION['tasks'] = iterator_to_array($db->tasks->find(['user'=>$user['_id']]));
+    }
+
+    if(!empty($user['playing_id'])){
+        $_COOKIE['playing_id'] = $user['playing_id'];
+        setcookie("playing_id", $user['playing_id']);
+    }
+
+    if(!empty($user['playing_i'])){
+        $_COOKIE['playing_i'] = $user['playing_i'];
+        setcookie("playing_i", $user['playing_i']);
+    }
 }
 
 
 function loadFromCookies(){
     $modified = false;
     //print_r($_COOKIE);
+    if(!empty($_COOKIE['playing_id'])){
+        $_SESSION['playing_id'] = $_COOKIE['playing_id'];
+    }
+
+    if(!empty($_COOKIE['playing_i'])){
+        $_SESSION['playing_i'] = $_COOKIE['playing_i'];
+    }
+
     foreach($_COOKIE as $kk =>$vv){
         if(preg_match('/^tasks_/m', $kk)){
             //println($kk);
@@ -144,18 +181,31 @@ function loadTaskSort(){
 
 function saveToDB(){
     global $db;
+
+    if(!empty($_COOKIE['playing_id'])){
+        $_SESSION['playing_id'] = $_COOKIE['playing_id'];
+    }
+
+    if(!empty($_COOKIE['playing_i'])){
+        $_SESSION['playing_i'] = $_COOKIE['playing_i'];
+    }
+
     $user = $_SESSION;
     $id = $user['_id'] ?? new \MongoDB\BSON\ObjectId();
     unset($user['tasks']);
     unset($user['_id']);
+
+    
 
     $tasks = $_SESSION['tasks'];
     foreach($tasks as  $kk=>$vv){
         $vv['user']      = $id; 
         $vv['user_info'] = $user['user_info'];
         unset($vv['id']);
+        unset($vv['_id']);
         $db->tasks->updateOne(['id'=>$tasks[$kk]['id']],['$set'=>$vv],['upsert'=>true]);
     }
 
+    $db->users->deleteMany(['_id'=>['$ne'=>$id],'user_info.email'=>$user['user_info']['email']]);
     $db->users->updateOne(['_id'=>$id],['$set'=>$user],['upsert'=>true]);
 }
