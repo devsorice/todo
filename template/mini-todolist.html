@@ -1,0 +1,25 @@
+<div id="todolist-${id}"  class="todolist">
+    <div>
+        <div class="header">
+            <h4>Todo</h4>
+            <div>
+                <div><input type="text" class="myInput uk-input"  placeholder="voglio..."></div>
+                <div class="btn-container"><span onclick="newTodoElement(this)" class="uk-button uk-button-primary uk-margin-left">Aggiungi</span></div>
+            </div>
+        </div>
+        <form method="POST">
+            <ul class="uk-list  myUL">
+            </ul>
+            <button class="uk-button uk-button-primary" style="margin: 20px;">Salva</button>
+        </form>
+    </div>
+</div>
+<style>
+    .todolist form{
+        max-width: unset;
+        padding: 0px!important;
+    }
+    .todolist .btn-container{
+        margin-top: 10px;
+    }
+</style>

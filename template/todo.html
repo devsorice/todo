@@ -1,0 +1,159 @@
+<!-- UIkit CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/css/uikit.min.css" />
+
+<!-- UIkit JS -->
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/js/uikit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/js/uikit-icons.min.js"></script>
+
+<!-- Splide JS -->
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/js/splide.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@latest/dist/css/splide.min.css">
+
+<!-- Todolist JS -->
+<script src="/assets/lib.js"></script>
+<link rel="stylesheet" href="/assets/main.css">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<div style="text-align: center;">
+    <form id="main-form" style="padding:0px;    max-width: unset;">        
+        <!-- Slider main container -->
+        <div id="splide" class="splide">
+            <div class="splide__track">
+                <ul class="splide__list">
+                </ul>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+   var playing = {};
+    var swiper = document.getElementById('splide');
+    var wrapper = swiper.querySelector('.splide__list');
+   
+    var list = [
+        {'id':'fdsfd', 'text':'A'},
+        {'id':'fdsfad', 'text':'CACSDS'},
+        {'id':'fdsaaad', 'text':'KOala', 'checked':true},
+        {'id':'fdsaaad', 'text':'KOssala','time':10000},
+        {'id':'fdsaaad', 'text':'KOassla'},
+        {'id':'fdsaaad', 'text':'KOsssala'},
+        {'id':'fdsaaad', 'text':'KOala'},
+        {'id':'fdsaaad', 'text':'KOsssala'},
+        {'id':'fdsaaad', 'text':'KOala'},
+        {'id':'fdsaaad', 'text':'KOssa'},
+        {'id':'fdsaaad', 'text':'KsssOala'}, 
+        {'id':'fdsaaad', 'text':'KOala'}
+    ];
+    list = tasks;
+
+    function addEl(id,text,attr,extra,data){
+        var i       = getNested('',data,'i');
+        var start   = getNested('',data,'timer','start');
+        var stop    = getNested('',data,'timer','stop');
+        var running = getNested('false',data,'timer','running');
+        var time    = getNested('0',data,'timer','time');
+        var timetxt = getNested('0s',data,'timer','timetxt');
+
+        wrapper.insertAdjacentHTML('beforeend', `
+            <li ${attr} class="splide__slide" style="display: flex; align-items: center; justify-content: center; font-size: 51px; padding: 20px; border: 2px solid;">
+                <fieldset>
+                    <input type="hidden" class="task-id"      name="tasks.${id}.id"            data-name="id"                value="${id}">
+                    <input type="hidden" class="task-i"       name="tasks.${id}.i"             data-name="i"                 value="${i}">
+                    <input type="hidden" class="task-start"   name="tasks.${id}.timer.start"   data-name="timer:start"       value="${start}">
+                    <input type="hidden" class="task-stop"    name="tasks.${id}.timer.stop"    data-name="timer:stop"        value="${stop}">
+                    <input type="hidden" class="task-running" name="tasks.${id}.timer.running" data-name="timer:running"     value="${running}">
+                    <input type="hidden" class="task-time"    name="tasks.${id}.timer.time"    data-name="timer:time"        value="${time}">
+                    <input type="hidden" class="task-timetxt" name="tasks.${id}.timer.timetxt" data-name="timer:timetxt"     value="${timetxt}">
+                </fieldset>  
+                  
+                <div><span style=" word-break: break-all; font-size: 35px;">${text}</span></div>
+                <div class="timer" data-id="${id}" data-i="${i}" data-start="${start}" data-stop="${stop}" data-running="${running}" data-time="${time}" data-timetxt="${timetxt}">${timetxt}</div>
+                <div style="font-size:25px">
+                  ${extra}
+                </div>
+                
+            </li>
+        `);
+    }
+
+    function miniTodoList(id){
+        return `<div class="uk-flex" style="max-width: 600px; margin: 20px;"><input type="text" class="uk-input" id="myInput" placeholder="Tag">
+                 <span onclick="newElement()" class="uk-button uk-button-primary uk-margin-left">Aggiungi</span>
+                </div>`;
+    }
+
+    function addTodos(todo){
+        var count = todo.length;
+        var single = 100/(count);
+        for(var i=0; i<count; i++){
+            var id = todo[i].id; 
+            var ordinal = i+1;
+            var cur    = (single*ordinal) - (single/2);
+            var checked = todo[i].checked ? true : false;
+            var time = todo[i].time ? todo[i].time : 0;
+            todo[i].time = time;
+            var custom_attr =checked ? 'checked="init"':''; 
+            var extra = `<div><label><input  name="tasks.${id}.done" data-name="done" class="cb pristine task-checkbox" style="left: calc(${cur}% - 51px)!important;" type="checkbox" ${custom_attr}></label></div>`;
+            var attr =  `data-i="${i}" data-id="${id}"`;
+            
+            extra += `<div><a href="#" onclick='UIkit.modal.dialog(&quot;<div style=&apos;padding: 34px;&apos;><h3>&quot;+decodeURIComponent(&quot;${encodeURIComponent(todo[i]['text'])}&quot;)+&quot;</h3> &quot;+decodeURIComponent(&quot;${encodeURIComponent(todo[i]['message'])}&quot;)+&quot; </div> <button class=&apos;uk-modal-close-default&apos; type=&apos;button&apos; uk-close></button>&quot;);'>Leggi Messaggio</a></div>`;
+            extra += `<div><a href="#" onclick='UIkit.modal.dialog(&quot;<div style=&apos;padding: 34px;&apos;><h3>Subtasks</h3> &quot;+decodeURIComponent(&quot;${encodeURIComponent(blankTodolist(id))}&quot;)+&quot; </div> <button class=&apos;uk-modal-close-default&apos; type=&apos;button&apos; uk-close></button>&quot;);'>SottoAttivita</a></div>`;
+            
+            //extra += blankTodolist(i);
+            addEl(id,todo[i]['text'],attr, extra,todo[i]);       
+        }
+    }
+
+    function msToTime(ms) {
+          let seconds = (ms / 1000).toFixed(1);
+          let minutes = (ms / (1000 * 60)).toFixed(1);
+          let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+          let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+          if (seconds < 60) return seconds + " Secondi";
+          else if (minutes < 60) return minutes + " Minuti";
+          else if (hours < 24) return hours + " Ore";
+          else return days + " Giorni"
+    }
+
+    addTodos(list);
+
+    document.addEventListener( 'DOMContentLoaded', function () {
+          window.splide = new Splide( '.splide', {fixedHeight:"90vh",fixedWidth:"100vw"} ).mount();
+
+          var playing_i = getCookie('playing_i');
+          var playing_id = getCookie('playing_id');
+          if(playing_i!==null && playing_id!==null){
+            var elDom = document.querySelector('.splide [data-i="'+playing_i+'"]');
+            var toGo = false;
+            if(elDom.getAttribute('data-id')==playing_id){
+              toGo = parseInt(playing_i);
+            }else{
+              var elements = document.querySelectorAll('.splide__slide');
+              for(var i=0; i<elements.length;i++){
+                if(elements[i].getAttribute('data-id')==playing_id){
+                   toGo = i;
+                }
+              }
+            }
+
+            if(toGo!==false){
+              saveCountDownStop(toGo);
+              splide.go(toGo);
+              saveCountDownStart(toGo);
+              startCountdown(toGo);
+            }
+          }
+         
+          splide.on( 'move', function(i) {
+              if(playing.interval){
+                stopCountdown(playing);
+              }
+              saveCountDownStart(i);
+              startCountdown(i);
+          });
+	  });
+</script>
+
