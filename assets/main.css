@@ -216,3 +216,21 @@ label {
     display: flex;
     align-items: baseline;
 }
+
+.subtask-count{
+  border-radius: 20px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    padding: 0;
+    opacity: .7;
+    background: #ccc;
+    font-size: 13px;
+    padding-right: 8px;
+    padding-left: 8px;
+    color: black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: inline-block;
+    vertical-align: middle;
+}

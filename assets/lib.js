@@ -4,6 +4,143 @@ String.prototype.interpolate = function(params) {
     return new Function(...names, `return \`${this}\`;`)(...vals);
 }
 
+var buildquery = function(){
+  var esc = function(param) {
+    return encodeURIComponent(param)
+      .replace(/[!'()*]/g, escape)
+      .replace(/%20/g, '+');
+  };
+  
+  var isNumeric = function(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+  };  
+  var cleanArray = function(actual) {
+    var newArray = new Array();
+    for (var i = 0; i < actual.length; i++) {
+      if (actual[i]) {
+        newArray.push(actual[i]);
+      }
+    }
+    return newArray;
+  };  
+  var httpBuildQuery = function(queryData, numericPrefix, argSeparator, tempKey) {
+    numericPrefix = numericPrefix || null;
+    argSeparator = argSeparator || '&';
+    tempKey = tempKey || null;
+  
+    if (!queryData) {
+      return '';
+    }
+  
+    var query = Object.keys(queryData).map(function(k) {
+      var res;
+      var key = k;
+  
+      if (tempKey) {
+        key = tempKey + '[' + key + ']';
+      }
+  
+      if (typeof queryData[k] === 'object' && queryData[k] !== null) {
+        res = httpBuildQuery(queryData[k], null, argSeparator, key);
+      } else {
+        if (numericPrefix) {
+          key = isNumeric(key) ? numericPrefix + Number(key) : key;
+        }
+  
+        var val = queryData[k];
+  
+        val = val === true ? '1' : val;
+        val = val === false ? '0' : val;
+        val = val === 0 ? '0' : val;
+        val = val || '';
+  
+        res = esc(key) + '=' + esc(val);
+      }
+  
+      return res;
+    });
+  
+    return cleanArray(query)
+      .join(argSeparator)
+      .replace(/[!'()*]/g, '');
+  };
+
+  return httpBuildQuery(...arguments);
+}
+
+function saveTodolist(el){
+    var close = el.closest('.uk-modal-dialog').querySelector('.uk-close');
+    var i   = parseInt(el.getAttribute('data-i'));
+    var id  = el.getAttribute('data-id');
+    var elements = formToObject(el);
+    if(elements['elements'] && typeof (elements['elements'])=='object'){
+        elements = elements['elements'];
+    }else if(elements['elements'] && typeof (elements['elements'])=='string'){
+        elements = [elements['elements']];
+    }else{
+        elements = [];
+    }
+    
+
+    var elDom = document.querySelector('.splide [data-i="'+i+'"]');
+    var subtask_div = elDom.querySelector('.subtask-data');
+    var subtask_count = elDom.querySelector('.subtask-count');
+    var html = '';
+
+
+    list[i]['todo'] = [];
+    for(var s=0; s<elements.length;s++){
+        list[i]['todo'].push({'text':elements[s]});
+        html += `<input type="hidden" class="task-subtask" name="tasks:${id}:todo:${s}:text" data-name="todo:${s}:text"     value="${elements[s]}">`;
+    }
+    subtask_div.innerHTML =    html;
+    subtask_count.innerHTML = elements.length;
+
+
+    updateBackend();
+    //
+
+    if(close){
+        close.click();
+    }
+}
+
+var executeScripts = function(parentSelector) {
+    var elm = document.getElementById(parentSelector).parentElement;
+    Array.from(elm.querySelectorAll("script")).forEach( oldScript => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes)
+        .forEach( attr => newScript.setAttribute(attr.name, attr.value) );
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+  }
+
+function formToObject( elem ) {
+    var current, entries, item, key, output, value;
+    output = {};
+    entries = new FormData( elem ).entries();
+    // Iterate over values, and assign to item.
+    while ( item = entries.next().value )
+      {
+        // assign to variables to make the code more readable.
+        key = item[0];
+        value = item[1];
+        // Check if key already exist
+        if (Object.prototype.hasOwnProperty.call( output, key)) {
+          current = output[ key ];
+          if ( !Array.isArray( current ) ) {
+            // If it's not an array, convert it to an array.
+            current = output[ key ] = [ current ];
+          }
+          current.push( value ); // Add the new value to the array.
+        } else {
+          output[ key ] = value;
+        }
+      }
+      return output;
+    }
+
 function setCookie(name,value="",days=false) {
     var expires = "";
     if (days) {
@@ -74,8 +211,8 @@ function getNested(def, obj, ...args) {
 
 
 
-function blankTodolist(id) {
-    return todolist_template.interpolate({id}); 
+function blankTodolist(id,i) {
+    return todolist_template.interpolate({id,i}); 
 }
   
   
@@ -99,7 +236,7 @@ function newTodoElement(elid=false,text=false) {
         inputValue = text;
     var t = document.createElement("input");
     t.setAttribute('type','text');
-    t.setAttribute('name','tags[]');
+    t.setAttribute('name','elements');
     t.setAttribute('class','uk-input');
     t.value = inputValue;
     li.appendChild(t);
@@ -111,7 +248,6 @@ function newTodoElement(elid=false,text=false) {
     myInput.value = "";
 
     var span = document.createElement("SPAN");
-    var txt = document.createTextNode("\u00D7");
     span.setAttribute('uk-icon','icon: close');
     span.className = "close uk-padding-small";
     span.onclick = function() {
@@ -205,6 +341,8 @@ function debug(){
 
     console.log('VARIABILE GLOBALE');
     console.log(list);
+
+    console.log(JSON.stringify(object));
 }
 
 
@@ -239,8 +377,24 @@ function stopCountdown(){
           }, 1000);
   }
 
-function updateBackend(keys){
+function updateBackend(){
+    var form     = document.getElementById('main-form');
+    var formData = new FormData(form); 
+    var object = {};
+    formData.forEach((value, key) => object[key] = value);
+    var str = buildquery({'update':object});
+    console.log(str);
 
+    function reqListener() {
+        console.log(this.responseText);
+    }
+      
+    var oReq = new XMLHttpRequest();
+    
+    oReq.addEventListener("load", reqListener);
+    oReq.open("POST", "/");
+    oReq.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    oReq.send(str);
 }
 
 
@@ -260,7 +414,10 @@ document.addEventListener("DOMContentLoaded",function(){
 
     document.querySelector("form").addEventListener("click", e => {
         let checkboxCL = e.target.classList;
+        if(checkboxCL.contains('task-checkbox'))
+            updateBackend();
         if(checkboxCL.contains('task-checkbox') && e.target.checked){
+            
             setTimeout(() => {
                 splide.go('+1');
             }, 600);               

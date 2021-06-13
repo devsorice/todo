@@ -47,7 +47,7 @@ $access_token = $_SESSION['access_token'] ?? '';
 $client = gmail_api_connect($access_token,$auth_code);
 $_SESSION['auth_code']    = $auth_code;
 $_SESSION['access_token'] = $access_token;
-
+$view='standard';
 
 
 
@@ -84,7 +84,14 @@ if($client instanceof Google_Client){
     }
     loadTaskSort();
     loadFromCookies();
+    loadFromPost();
     saveToDB();
+
+    if($view=='ajax'){
+        print_r(json_encode($_SESSION['tasks']));
+        exit;
+    }
+
 
     $task_string = str_replace('drag-signature\r\n                ?We run on ','',str_replace('\ufffd','\n',json_encode($_SESSION['tasks'],JSON_INVALID_UTF8_SUBSTITUTE)));
     $_SESSION['tasks'] = json_decode($task_string,true);
@@ -117,6 +124,62 @@ function loadFromDB($email,$password){
         setcookie("playing_i", $user['playing_i']);
     }
 }
+
+
+
+
+function loadFromPost(){
+    global $view;
+    if(!empty($_POST['update'])){
+        $view = 'ajax';
+        $modified = false;  
+        $tasks_not_done = [];
+        foreach($_POST['update'] as $kk =>$vv){
+            if(preg_match('/^tasks:/m', $kk)){
+                //println($kk);
+                $kk = explode('tasks:',$kk);
+                //println($kk);
+                $kk = $kk[1];
+                //println($kk);
+                $kk = explode(':',$kk);
+                //println($kk);
+                $id = urldecode($kk[0]);
+                //println($id);
+                $kk = array_slice($kk, 1,count($kk)-1);
+                //println($kk);
+                $kk = implode(':',$kk);
+                $name = urldecode($kk);
+                $value = $vv;
+                $sort =  $_SESSION['tasks_sort'][$id];
+                if(!isset( $tasks_not_done[$sort]))
+                    $tasks_not_done[$sort] = false; 
+                //print_r($_SESSION['tasks_sort']);
+                /*print_r('modifico');
+                print_r($_SESSION['tasks'][$sort]);
+                print_r(explode(':',$name));
+                print_r($value);*/
+                //print_r([$_SESSION['tasks'][$sort],explode(':',$name),$value]);
+                arraySetVar($value,$_SESSION['tasks'][$sort], ...explode(':',$name));
+                
+                if($name=='done'){
+                    $tasks_not_done[$sort] = true;
+                }
+                if(!empty($_SESSION['tasks'][$sort]['timer']['time'])){
+                    $_SESSION['tasks'][$sort]['time'] = (int)$_SESSION['tasks'][$sort]['timer']['time'];
+                }
+                
+                $modified = true;
+            }
+        }
+    
+        foreach($tasks_not_done as $sort=>$val){
+            $_SESSION['tasks'][$sort]['done'] = $val;
+        }
+
+    }
+       
+}    
+
 
 
 function loadFromCookies(){
