@@ -259,6 +259,17 @@ function newTodoElement(elid=false,text=false) {
 }
 
 
+function saveShowing(i){
+  var elParent = document.querySelector('.splide [data-i="'+i+'"]');
+  var el = elParent.querySelector('.timer');
+  var id = elParent.getAttribute('data-id');
+  showing.i = i;
+  showing.id = id;
+  showing.element = el;
+  setCookie('showing_i', i);
+  setCookie('showing_id', id);
+}
+
 function saveCountDownStart(i){
     var el = list[i];
     var elDom = document.querySelector('.splide [data-i="'+i+'"]');
@@ -274,6 +285,22 @@ function saveCountDownStart(i){
     setCookie('playing_i', i);
     setCookie('playing_id', id);
     saveFrontend(i,{time,stop,start,i,timetxt,running,stop});
+}
+
+
+function resetCountDown(i){
+  var el = list[i];
+  el.time = 0;
+  var elDom = document.querySelector('.splide [data-i="'+i+'"]');
+  var timer = elDom.querySelector('.timer');
+  var id  = elDom.getAttribute('data-id');
+  var time = 0;
+  var start =  '';
+  var timetxt = '0s';
+  var stop = '';
+  var running = 'false';
+  saveFrontend(i,{time,stop,start,i,timetxt,running,stop});
+  timer.innerHTML = '0s';
 }
 
 
@@ -293,6 +320,8 @@ function saveCountDownStop(i){
     var timetxt = msToTime(new_time);
     var stop = new Date().getTime();
     var running = 'false';
+    eraseCookie('playing_i');
+    eraseCookie('playing_id');
     saveFrontend(i,{time,stop,start,i,timetxt,running,stop});
 }
 
@@ -345,11 +374,37 @@ function debug(){
     console.log(JSON.stringify(object));
 }
 
+function resetTimer(){
+  var showing_i = getCookie('showing_i');
+
+  if(playing && playing.element){
+    stopCountdown();
+  }
+  if(showing_i || showing_i===0){
+    showing_i = parseInt(showing_i);
+    resetCountDown(showing_i);
+  }
+  updateBackend();
+}
+
+function togglePlay(){
+  var showing_i = getCookie('showing_i');
+
+  if(playing && playing.element){
+    stopCountdown();
+  }else if(showing_i || showing_i===0){
+     showing_i = parseInt(showing_i);
+     saveCountDownStart(showing_i);
+     startCountdown(showing_i); 
+  }
+}
 
 function stopCountdown(){
     var i = parseInt(playing.element.getAttribute('data-i'));
     saveCountDownStop(i);
     clearInterval(playing.interval);
+    delete playing.interval;
+    delete playing.element;
   }
 
   function startCountdown(i){

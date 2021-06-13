@@ -117,11 +117,28 @@ function loadFromDB($email,$password){
     if(!empty($user['playing_id'])){
         $_COOKIE['playing_id'] = $user['playing_id'];
         setcookie("playing_id", $user['playing_id']);
+    }else{
+        unset($_COOKIE['playing_id']);
+        setcookie('playing_id', '', time() - 3600, '/');
     }
 
     if(!empty($user['playing_i'])){
         $_COOKIE['playing_i'] = $user['playing_i'];
         setcookie("playing_i", $user['playing_i']);
+    }else{
+        unset($_COOKIE['playing_i']);
+        setcookie('playing_i', '', time() - 3600, '/');
+    }
+
+
+    if(!empty($user['showing_id'])){
+        $_COOKIE['showing_id'] = $user['showing_id'];
+        setcookie("showing_id", $user['showing_id']);
+    }
+
+    if(!empty($user['showing_i'])){
+        $_COOKIE['showing_i'] = $user['showing_i'];
+        setcookie("showing_i", $user['showing_i']);
     }
 }
 
@@ -187,10 +204,22 @@ function loadFromCookies(){
     //print_r($_COOKIE);
     if(!empty($_COOKIE['playing_id'])){
         $_SESSION['playing_id'] = $_COOKIE['playing_id'];
+    }else{
+        unset($_SESSION['playing_id']);
     }
 
     if(!empty($_COOKIE['playing_i'])){
         $_SESSION['playing_i'] = $_COOKIE['playing_i'];
+    }else{
+        unset($_SESSION['playing_i']);
+    }
+
+    if(!empty($_COOKIE['showing_i'])){
+        $_SESSION['showing_i'] = $_COOKIE['showing_i'];
+    }
+
+    if(!empty($_COOKIE['showing_id'])){
+        $_SESSION['showing_id'] = $_COOKIE['showing_id'];
     }
 
     foreach($_COOKIE as $kk =>$vv){
@@ -221,6 +250,8 @@ function loadFromCookies(){
             arraySetVar($value,$_SESSION['tasks'][$sort], ...explode(':',$name));
             if(!empty($_SESSION['tasks'][$sort]['timer']['time'])){
                 $_SESSION['tasks'][$sort]['time'] = (int)$_SESSION['tasks'][$sort]['timer']['time'];
+            }else{
+                $_SESSION['tasks'][$sort]['time'] = 0;
             }
             
             $modified = true;
@@ -247,10 +278,22 @@ function saveToDB(){
 
     if(!empty($_COOKIE['playing_id'])){
         $_SESSION['playing_id'] = $_COOKIE['playing_id'];
+    }else{
+        unset($_SESSION['playing_id']);
     }
 
     if(!empty($_COOKIE['playing_i'])){
         $_SESSION['playing_i'] = $_COOKIE['playing_i'];
+    }else{
+        unset($_SESSION['playing_i']);
+    }
+
+    if(!empty($_COOKIE['showing_i'])){
+        $_SESSION['showing_i'] = $_COOKIE['showing_i'];
+    }
+
+    if(!empty($_COOKIE['showing_id'])){
+        $_SESSION['showing_id'] = $_COOKIE['showing_id'];
     }
 
     $user = $_SESSION;
